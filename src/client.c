@@ -8,21 +8,30 @@
 #include <unistd.h>
 #define BUFSZ 1024
 
-void Usage(int argc, char **argv) {
-    printf("usage: %s <server IP> <server port>", argv[0]);
-    printf("example: %s 127.0.0.1 51511", argv[0]);
-    exit(EXIT_FAILURE);
+void CheckInitialization(int argc, char **argv) {
+    if (argc != 5) {
+        LogExit("Error: Invalid number of arguments");
+    }
+
+    if (strcmp(argv[3], "-nick") != 0) {
+        LogExit("Error: Expected '-nick' argument");
+    }
+    if (strlen(argv[4]) > 13) {
+        LogExit("Error: Nickname toolong (max 13)");
+    }
 }
 
 int main(int argc, char **argv) {
-    if (argc < 3) {
-        Usage(argc, argv);
-    }
+    CheckInitialization(argc, argv);
+
+    char *nick = argv[4];
+
+    printf("%s\n", nick);
 
     struct sockaddr_storage storage;
 
     if (AddrParser(argv[1], argv[2], &storage) != 0) {
-        Usage(argc, argv);
+        LogExit("addrparser");
     }
     int s;
     // passa o storage.ss_family para inicializar com o IPV4, ou IPV6
@@ -38,35 +47,17 @@ int main(int argc, char **argv) {
         LogExit("connect");
     }
 
-    char addrstr[BUFSZ];
-    AddrToString(addr, addrstr, BUFSZ);
+    // char addrstr[BUFSZ];
+    // AddrToString(addr, addrstr, BUFSZ);
 
-    printf("connected to %s\n", addrstr);
+    // printf("connected to %s\n", addrstr);
 
-    char buf[BUFSZ];
-    memset(buf, 0, BUFSZ);
-    printf("mensagens >> \n");
-    fgets(buf, BUFSZ - 1, stdin);
-
-    size_t count = send(s, buf, strlen(buf) + 1, 0);
-
-    if (count != strlen(buf) + 1) {
-        LogExit("send");
-    }
-
-    memset(buf, 0, BUFSZ);
     unsigned total = 0;
     while (1) {
-        count = recv(s, buf + total, BUFSZ - total, 0);
-
-        if (count == 0) {
-            break;
-        }
-        total += count;
+        recv(s, total, BUFSZ - total, 0);
     }
     close(s);
 
     printf("receive %d bytes \n", total);
-    puts(buf);
     exit(EXIT_SUCCESS);
 }
