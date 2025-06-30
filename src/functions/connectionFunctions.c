@@ -4,15 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define STR_LEN 11
-struct aviator_msg {
-int32_t player_id;
-float value;
-char type[STR_LEN];
-float player_profit;
-float house_profit;
-};
-
 void LogExit(char *msg) {
     printf("%s\n", msg);
     exit(EXIT_FAILURE);
